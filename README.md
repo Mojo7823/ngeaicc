@@ -1,4 +1,4 @@
-# **AI Testing Standard Solution - Complete Project Documentation**
+# **AI Testing Standard Solution?**
 
 ## **Project Overview**
 Develop an AI testing standard platform based on Common Criteria, targeting AI-integrated devices with CVE-based test cases and intelligent recommendations.
@@ -40,8 +40,6 @@ Frontend (Vue.js) ↔ Backend (FastAPI) ↔ Local AI API (Llama3)
 - **Test Recommendations**: AI suggests relevant tests based on device profile
 - **Smart Assistance**: "Autocomplete for testing" throughout platform
 - **Report Generation**: AI-enhanced analysis and insights
-- **Human-in-the-Loop**: User approval required for AI recommendations
-
 ---
 
 ## **MVP Development Plan**
