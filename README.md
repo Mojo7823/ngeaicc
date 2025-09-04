@@ -12,7 +12,7 @@ Develop an AI testing standard platform based on Common Criteria, targeting AI-i
 - **Backend**: FastAPI (Python)
 - **Database**: PostgreSQL + pgvector
 - **AI Model**: Llama3 (local API)
-- **Deployment**: No Docker initially (due to USB/serial port requirements)
+- **Deployment**: Docker (Use usb/ip as hardware compatibility)
 
 ### **Architecture Flow**
 ```
@@ -62,11 +62,11 @@ Frontend (Vue.js) ↔ Backend (FastAPI) ↔ Local AI API (Llama3)
 ---
 
 ## **Key Design Decisions**
-- **No Docker initially** (hardware access complexity)
+- **USB/IP Docker** (Hardware access via IP)
 - **Local AI API** (all AI interactions via own endpoints)
 - **CVE-driven testing** (real vulnerability focus)
 - **Human approval required** (no automatic test execution)
-- **Exportable reports** (Word document format)
+- **Exportable reports** (Word/Excel document format)
 
 ---
 
