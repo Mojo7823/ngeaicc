@@ -153,8 +153,8 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { debounce } from 'lodash-es'
-import WysiwygEditor from '../components/WysiwygEditor.vue'
-import ApiService from '../services/api'
+import WysiwygEditor from '../../components/WysiwygEditor.vue'
+import ApiService from '../../services/api'
 
 interface TOEDescriptionData {
   id?: string
