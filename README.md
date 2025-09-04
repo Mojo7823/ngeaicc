@@ -113,6 +113,10 @@ ngeaicc/
 │   └── package.json       # Node.js dependencies
 ├── database/               # Database initialization
 │   └── init/              # SQL scripts
+├── changelog/              # Documentation & updates
+│   ├── status.md          # Project status and features
+│   ├── frontend-setup.md  # Frontend setup guide
+│   └── gitignore-update.md # Git configuration
 └── docker-compose.yml     # Multi-service orchestration
 ```
 
@@ -172,6 +176,19 @@ ngeaicc/
 4. **Common Criteria Forms** - Interactive CC compliance forms
 5. **Report Generation** - Professional SAR document creation
 6. **Physical Device Interface** - USB/Serial device communication
+
+---
+
+## **📋 Documentation & Updates**
+
+### **Changelog Directory**
+All project updates, new features, and documentation changes are maintained in the `/changelog` directory:
+
+- **Setup Documentation**: [changelog/status.md](changelog/status.md) - Current project status and working features
+- **Frontend Setup**: [changelog/frontend-setup.md](changelog/frontend-setup.md) - Frontend-specific setup and configuration  
+- **Development Updates**: [changelog/gitignore-update.md](changelog/gitignore-update.md) - Git configuration and ignore patterns
+
+**📝 Note**: When adding new documentation, features, or updates, please place them in the `changelog/` folder to maintain organized project history.
 
 ---
 
