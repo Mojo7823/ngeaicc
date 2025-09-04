@@ -55,3 +55,35 @@ class HelloWorldResponse(BaseModel):
 class MessageRequest(BaseModel):
     message: str = Field(..., min_length=1)
     user_id: Optional[str] = None
+
+# Admin schemas
+class AdminStats(BaseModel):
+    system: dict
+    database: dict
+    api: dict
+
+class DatabaseTable(BaseModel):
+    schema: str
+    name: str
+    size: str
+    statistics: dict
+
+class DatabaseHealth(BaseModel):
+    status: str
+    connection: str
+    pgvector_enabled: bool
+    database_version: str
+    last_check: datetime
+
+class ApiEndpoint(BaseModel):
+    path: str
+    method: str
+    description: str
+    category: str
+
+class SystemInfo(BaseModel):
+    application: dict
+    database: dict
+    frontend: dict
+    deployment: dict
+    timestamp: datetime

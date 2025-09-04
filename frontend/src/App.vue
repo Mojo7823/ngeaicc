@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import ApiService from './services/api.js'
+import AdminDashboard from './components/AdminDashboard.vue'
 
+const currentView = ref('main') // 'main' or 'admin'
 const message = ref('')
 const response = ref('')
 const loading = ref(false)
@@ -91,11 +93,30 @@ const createDevice = async () => {
 <template>
   <div class="app-container">
     <header>
-      <h1>AI Testing Standard Platform</h1>
-      <p>FastAPI + Vue.js + PostgreSQL (pgvector) Integration Test</p>
+      <div class="header-content">
+        <div>
+          <h1>AI Testing Standard Platform</h1>
+          <p>FastAPI + Vue.js + PostgreSQL (pgvector) Integration Test</p>
+        </div>
+        <nav class="main-nav">
+          <button 
+            @click="currentView = 'main'"
+            :class="['nav-btn', { active: currentView === 'main' }]"
+          >
+            🏠 Main
+          </button>
+          <button 
+            @click="currentView = 'admin'"
+            :class="['nav-btn', { active: currentView === 'admin' }]"
+          >
+            🔧 Admin
+          </button>
+        </nav>
+      </div>
     </header>
 
-    <main>
+    <!-- Main Application View -->
+    <main v-if="currentView === 'main'">
       <!-- Hello World Section -->
       <section class="hello-section">
         <h2>🚀 Backend Connection Status</h2>
@@ -188,6 +209,9 @@ const createDevice = async () => {
         </div>
       </section>
     </main>
+
+    <!-- Admin Dashboard View -->
+    <AdminDashboard v-if="currentView === 'admin'" />
   </div>
 </template>
 
@@ -200,12 +224,23 @@ const createDevice = async () => {
 }
 
 header {
-  text-align: center;
   margin-bottom: 40px;
   padding: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-radius: 12px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.header-content > div {
+  text-align: left;
 }
 
 header h1 {
@@ -216,6 +251,36 @@ header h1 {
 header p {
   margin: 0;
   opacity: 0.9;
+}
+
+.main-nav {
+  display: flex;
+  gap: 10px;
+}
+
+.nav-btn {
+  padding: 10px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.nav-btn.active {
+  background: rgba(255, 255, 255, 0.9);
+  color: #667eea;
+  border-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 section {
@@ -381,5 +446,29 @@ pre {
   border-radius: 4px;
   overflow-x: auto;
   font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .header-content > div {
+    text-align: center;
+  }
+  
+  .main-nav {
+    justify-content: center;
+  }
+  
+  .nav-btn {
+    flex: 1;
+    min-width: 100px;
+  }
+  
+  header h1 {
+    font-size: 2em;
+  }
 }
 </style>
