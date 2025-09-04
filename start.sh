@@ -10,7 +10,7 @@ fi
 
 # Start PostgreSQL
 echo "🐘 Starting PostgreSQL with pgvector..."
-docker-compose up -d postgres
+docker compose up -d postgres
 
 # Wait for PostgreSQL to be ready
 echo "⏳ Waiting for PostgreSQL to be ready..."
@@ -34,7 +34,7 @@ cd backend
 # Check if virtual environment exists
 if [ ! -d "venv" ]; then
     echo "Creating Python virtual environment..."
-    python -m venv venv
+    python3 -m venv venv
 fi
 
 # Activate virtual environment
@@ -42,10 +42,10 @@ source venv/bin/activate
 
 # Install dependencies
 echo "📦 Installing Python dependencies..."
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 
 echo "🚀 Starting FastAPI server..."
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 &
+python3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 &
 BACKEND_PID=$!
 
 # Give backend time to start
@@ -87,7 +87,7 @@ echo "   API Docs:     http://localhost:8000/docs"
 echo "   PostgreSQL:   localhost:5432"
 echo ""
 echo "🛑 To stop all services:"
-echo "   Press Ctrl+C, then run: docker-compose down"
+echo "   Press Ctrl+C, then run: docker compose down"
 echo ""
 echo "📋 Backend PID: $BACKEND_PID"
 echo "📋 Frontend PID: $FRONTEND_PID"

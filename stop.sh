@@ -4,7 +4,7 @@ echo "🛑 Stopping AI Testing Standard Platform..."
 
 # Stop Docker containers
 echo "🐘 Stopping PostgreSQL..."
-docker-compose down
+docker compose down
 
 # Kill any running uvicorn processes
 echo "🔧 Stopping FastAPI backend..."
