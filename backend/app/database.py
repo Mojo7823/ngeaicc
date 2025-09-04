@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, String, DateTime, Text, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from pgvector.sqlalchemy import Vector
@@ -67,6 +67,3 @@ async def init_db():
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         # Create all tables
         await conn.run_sync(Base.metadata.create_all)
-
-# Import text from sqlalchemy for SQL execution
-from sqlalchemy import text
