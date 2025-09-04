@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text, select, func
+from sqlalchemy import text, select, func, delete
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import asyncio
 
-from app.database import get_db, TestCase as TestCaseModel, Device as DeviceModel
+from app.database import get_db, TestCase as TestCaseModel, Device as DeviceModel, TOEDescription as TOEDescriptionModel
 from app.models.schemas import AdminStats, DatabaseTable, DatabaseHealth, ApiEndpoint, SystemInfo
 
 router = APIRouter()
@@ -17,6 +17,7 @@ async def get_admin_stats(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     # Get database statistics
     test_cases_count = await db.scalar(select(func.count(TestCaseModel.id)))
     devices_count = await db.scalar(select(func.count(DeviceModel.id)))
+    toe_descriptions_count = await db.scalar(select(func.count(TOEDescriptionModel.id)))
     
     # Get recent activity (last 24 hours)
     recent_test_cases = await db.scalar(
@@ -37,15 +38,16 @@ async def get_admin_stats(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
             "database_size": db_size
         },
         "database": {
-            "total_tables": 2,
+            "total_tables": 3,
             "test_cases_count": test_cases_count or 0,
             "devices_count": devices_count or 0,
+            "toe_descriptions_count": toe_descriptions_count or 0,
             "recent_activity": {
                 "test_cases_last_24h": recent_test_cases or 0
             }
         },
         "api": {
-            "endpoints_available": 12,
+            "endpoints_available": 20,
             "status": "active"
         }
     }
@@ -119,6 +121,102 @@ async def get_database_health(db: AsyncSession = Depends(get_db)) -> Dict[str, A
             "last_check": datetime.now()
         }
 
+# Database CRUD operations for admin management
+@router.get("/database/data/{table_name}")
+async def get_table_data(table_name: str, db: AsyncSession = Depends(get_db)):
+    """Get data from a specific table"""
+    
+    if table_name not in ['test_cases', 'devices', 'toe_descriptions']:
+        raise HTTPException(status_code=400, detail="Invalid table name")
+    
+    try:
+        if table_name == 'test_cases':
+            result = await db.execute(select(TestCaseModel))
+            data = result.scalars().all()
+        elif table_name == 'devices':
+            result = await db.execute(select(DeviceModel))
+            data = result.scalars().all()
+        elif table_name == 'toe_descriptions':
+            result = await db.execute(select(TOEDescriptionModel))
+            data = result.scalars().all()
+        
+        # Convert to dict for JSON serialization
+        return [
+            {
+                **{column.name: getattr(item, column.name) for column in item.__table__.columns}
+            }
+            for item in data
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
+
+@router.delete("/database/data/{table_name}/{item_id}")
+async def delete_table_item(table_name: str, item_id: str, db: AsyncSession = Depends(get_db)):
+    """Delete an item from a specific table"""
+    
+    if table_name not in ['test_cases', 'devices', 'toe_descriptions']:
+        raise HTTPException(status_code=400, detail="Invalid table name")
+    
+    try:
+        if table_name == 'test_cases':
+            result = await db.execute(select(TestCaseModel).where(TestCaseModel.id == item_id))
+            item = result.scalar_one_or_none()
+            if item:
+                await db.delete(item)
+        elif table_name == 'devices':
+            result = await db.execute(select(DeviceModel).where(DeviceModel.id == item_id))
+            item = result.scalar_one_or_none()
+            if item:
+                await db.delete(item)
+        elif table_name == 'toe_descriptions':
+            result = await db.execute(select(TOEDescriptionModel).where(TOEDescriptionModel.id == item_id))
+            item = result.scalar_one_or_none()
+            if item:
+                await db.delete(item)
+        
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        
+        await db.commit()
+        return {"message": "Item deleted successfully"}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error deleting item: {str(e)}")
+
+@router.post("/database/execute-sql")
+async def execute_sql_query(query_data: dict, db: AsyncSession = Depends(get_db)):
+    """Execute a custom SQL query (READ ONLY)"""
+    
+    query = query_data.get("query", "").strip().lower()
+    
+    # Security check - only allow SELECT queries
+    if not query.startswith("select"):
+        raise HTTPException(status_code=400, detail="Only SELECT queries are allowed")
+    
+    # Additional security - block potentially dangerous keywords
+    dangerous_keywords = ['drop', 'delete', 'update', 'insert', 'alter', 'create', 'truncate']
+    if any(keyword in query for keyword in dangerous_keywords):
+        raise HTTPException(status_code=400, detail="Query contains forbidden keywords")
+    
+    try:
+        result = await db.execute(text(query_data["query"]))
+        
+        # Get column names
+        columns = list(result.keys()) if result.keys() else []
+        
+        # Get data
+        rows = []
+        for row in result:
+            rows.append(dict(row._mapping))
+        
+        return {
+            "columns": columns,
+            "rows": rows,
+            "count": len(rows)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Query execution error: {str(e)}")
+
 @router.get("/api/endpoints", response_model=List[ApiEndpoint])
 async def get_api_endpoints() -> List[Dict[str, Any]]:
     """Get list of all available API endpoints"""
@@ -134,9 +232,16 @@ async def get_api_endpoints() -> List[Dict[str, Any]]:
         {"path": "/api/v1/devices", "method": "GET", "description": "Get all devices", "category": "data"},
         {"path": "/api/v1/devices", "method": "POST", "description": "Create device", "category": "data"},
         {"path": "/api/v1/devices/{id}", "method": "GET", "description": "Get specific device", "category": "data"},
+        {"path": "/api/v1/toe-description", "method": "GET", "description": "Get TOE description", "category": "data"},
+        {"path": "/api/v1/toe-description", "method": "POST", "description": "Create TOE description", "category": "data"},
+        {"path": "/api/v1/toe-description/{id}", "method": "PUT", "description": "Update TOE description", "category": "data"},
+        {"path": "/api/v1/toe-description/{id}", "method": "GET", "description": "Get specific TOE description", "category": "data"},
         {"path": "/api/v1/admin/stats", "method": "GET", "description": "System statistics", "category": "admin"},
         {"path": "/api/v1/admin/database/tables", "method": "GET", "description": "Database tables info", "category": "admin"},
         {"path": "/api/v1/admin/database/health", "method": "GET", "description": "Database health check", "category": "admin"},
+        {"path": "/api/v1/admin/database/data/{table}", "method": "GET", "description": "Get table data", "category": "admin"},
+        {"path": "/api/v1/admin/database/data/{table}/{id}", "method": "DELETE", "description": "Delete table item", "category": "admin"},
+        {"path": "/api/v1/admin/database/execute-sql", "method": "POST", "description": "Execute SQL query", "category": "admin"},
         {"path": "/api/v1/admin/api/endpoints", "method": "GET", "description": "API endpoints list", "category": "admin"}
     ]
     

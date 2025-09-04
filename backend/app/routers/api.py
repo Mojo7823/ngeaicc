@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
-from app.database import get_db, TestCase as TestCaseModel, Device as DeviceModel
+from app.database import get_db, TestCase as TestCaseModel, Device as DeviceModel, TOEDescription as TOEDescriptionModel
 from app.models.schemas import (
     HelloWorldResponse, 
     MessageRequest,
@@ -13,7 +13,10 @@ from app.models.schemas import (
     TestCaseUpdate,
     Device,
     DeviceCreate,
-    DeviceUpdate
+    DeviceUpdate,
+    TOEDescription,
+    TOEDescriptionCreate,
+    TOEDescriptionUpdate
 )
 
 router = APIRouter()
@@ -91,3 +94,56 @@ async def get_device(device_id: str, db: AsyncSession = Depends(get_db)):
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
     return device
+
+# TOE Description endpoints
+@router.get("/toe-description", response_model=Optional[TOEDescription])
+async def get_toe_description(db: AsyncSession = Depends(get_db)):
+    """Get the current TOE description (latest one)"""
+    result = await db.execute(
+        select(TOEDescriptionModel).order_by(TOEDescriptionModel.updated_at.desc())
+    )
+    toe_description = result.scalar_one_or_none()
+    return toe_description
+
+@router.post("/toe-description", response_model=TOEDescription)
+async def create_toe_description(toe_description: TOEDescriptionCreate, db: AsyncSession = Depends(get_db)):
+    """Create a new TOE description"""
+    db_toe_description = TOEDescriptionModel(**toe_description.dict())
+    db.add(db_toe_description)
+    await db.commit()
+    await db.refresh(db_toe_description)
+    return db_toe_description
+
+@router.put("/toe-description/{toe_description_id}", response_model=TOEDescription)
+async def update_toe_description(
+    toe_description_id: str, 
+    toe_description: TOEDescriptionUpdate, 
+    db: AsyncSession = Depends(get_db)
+):
+    """Update an existing TOE description"""
+    result = await db.execute(
+        select(TOEDescriptionModel).where(TOEDescriptionModel.id == toe_description_id)
+    )
+    db_toe_description = result.scalar_one_or_none()
+    if not db_toe_description:
+        raise HTTPException(status_code=404, detail="TOE Description not found")
+    
+    # Update fields
+    update_data = toe_description.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_toe_description, field, value)
+    
+    await db.commit()
+    await db.refresh(db_toe_description)
+    return db_toe_description
+
+@router.get("/toe-description/{toe_description_id}", response_model=TOEDescription)
+async def get_toe_description_by_id(toe_description_id: str, db: AsyncSession = Depends(get_db)):
+    """Get a specific TOE description by ID"""
+    result = await db.execute(
+        select(TOEDescriptionModel).where(TOEDescriptionModel.id == toe_description_id)
+    )
+    toe_description = result.scalar_one_or_none()
+    if not toe_description:
+        raise HTTPException(status_code=404, detail="TOE Description not found")
+    return toe_description

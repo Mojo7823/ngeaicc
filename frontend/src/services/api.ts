@@ -19,6 +19,23 @@ export interface Device {
   created_at: string
 }
 
+export interface TOEDescription {
+  id: string
+  toe_name: string
+  toe_vendor: string
+  evaluation_date: string
+  laboratory_address: string
+  laboratory_name: string
+  toe_version: string
+  common_criteria_version: string
+  vendor_address: string
+  evaluation_personnel: string
+  protection_profile_module: string
+  toe_description: string
+  created_at: string
+  updated_at?: string
+}
+
 export interface HelloWorldResponse {
   message: string
   status: string
@@ -106,6 +123,47 @@ class ApiService {
       return response.data
     } catch (error) {
       console.error('Error creating device:', error)
+      throw error
+    }
+  }
+
+  // TOE Description endpoints
+  async getTOEDescription(): Promise<TOEDescription | null> {
+    try {
+      const response = await this.client.get('/toe-description')
+      return response.data
+    } catch (error) {
+      console.error('Error fetching TOE description:', error)
+      return null
+    }
+  }
+
+  async createTOEDescription(toeDescription: Partial<TOEDescription>): Promise<TOEDescription> {
+    try {
+      const response = await this.client.post('/toe-description', toeDescription)
+      return response.data
+    } catch (error) {
+      console.error('Error creating TOE description:', error)
+      throw error
+    }
+  }
+
+  async updateTOEDescription(id: string, toeDescription: Partial<TOEDescription>): Promise<TOEDescription> {
+    try {
+      const response = await this.client.put(`/toe-description/${id}`, toeDescription)
+      return response.data
+    } catch (error) {
+      console.error('Error updating TOE description:', error)
+      throw error
+    }
+  }
+
+  async getTOEDescriptionById(id: string): Promise<TOEDescription> {
+    try {
+      const response = await this.client.get(`/toe-description/${id}`)
+      return response.data
+    } catch (error) {
+      console.error('Error fetching TOE description by ID:', error)
       throw error
     }
   }
