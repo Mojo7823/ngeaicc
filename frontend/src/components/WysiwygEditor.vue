@@ -17,6 +17,22 @@ import { ref, computed, watch } from 'vue'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
+// Custom image resize module
+const ImageResize = {
+  modules: ['Resize']
+}
+
+// Custom table module configuration
+const TableModule = {
+  operationMenu: {
+    items: {
+      unmergeCells: {
+        text: 'Another unmerge cells name'
+      }
+    }
+  }
+}
+
 interface Props {
   modelValue?: string
   label?: string
@@ -53,8 +69,15 @@ const editorOptions = {
       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
       [{ 'indent': '-1'}, { 'indent': '+1' }],
       ['link', 'image'],
+      [{ 'table': 'TD' }],
       ['clean']
-    ]
+    ],
+    table: true,
+    tableUI: true,
+    imageResize: {
+      displaySize: true,
+      modules: ['Resize', 'DisplaySize', 'Toolbar']
+    }
   }
 }
 
