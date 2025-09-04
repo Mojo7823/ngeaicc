@@ -1,474 +1,386 @@
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import ApiService from './services/api.js'
-import AdminDashboard from './components/AdminDashboard.vue'
-
-const currentView = ref('main') // 'main' or 'admin'
-const message = ref('')
-const response = ref('')
-const loading = ref(false)
-const helloData = ref(null)
-const testCases = ref([])
-const devices = ref([])
-
-const newTestCase = ref({
-  name: '',
-  description: '',
-  category: ''
-})
-
-const newDevice = ref({
-  name: '',
-  manufacturer: '',
-  model: '',
-  description: ''
-})
-
-// Fetch hello world on component mount
-onMounted(async () => {
-  try {
-    helloData.value = await ApiService.getHelloWorld()
-    await loadTestCases()
-    await loadDevices()
-  } catch (error) {
-    console.error('Failed to fetch initial data:', error)
-  }
-})
-
-const sendMessage = async () => {
-  if (!message.value.trim()) return
-  
-  loading.value = true
-  try {
-    const result = await ApiService.sendMessage(message.value)
-    response.value = JSON.stringify(result, null, 2)
-  } catch (error) {
-    response.value = `Error: ${error.message}`
-  } finally {
-    loading.value = false
-  }
-}
-
-const loadTestCases = async () => {
-  try {
-    testCases.value = await ApiService.getTestCases()
-  } catch (error) {
-    console.error('Failed to load test cases:', error)
-  }
-}
-
-const loadDevices = async () => {
-  try {
-    devices.value = await ApiService.getDevices()
-  } catch (error) {
-    console.error('Failed to load devices:', error)
-  }
-}
-
-const createTestCase = async () => {
-  if (!newTestCase.value.name.trim()) return
-  
-  try {
-    await ApiService.createTestCase(newTestCase.value)
-    newTestCase.value = { name: '', description: '', category: '' }
-    await loadTestCases()
-  } catch (error) {
-    console.error('Failed to create test case:', error)
-  }
-}
-
-const createDevice = async () => {
-  if (!newDevice.value.name.trim()) return
-  
-  try {
-    await ApiService.createDevice(newDevice.value)
-    newDevice.value = { name: '', manufacturer: '', model: '', description: '' }
-    await loadDevices()
-  } catch (error) {
-    console.error('Failed to create device:', error)
-  }
-}
-</script>
-
 <template>
-  <div class="app-container">
-    <header>
-      <div class="header-content">
-        <div>
-          <h1>AI Testing Standard Platform</h1>
-          <p>FastAPI + Vue.js + PostgreSQL (pgvector) Integration Test</p>
-        </div>
-        <nav class="main-nav">
-          <button 
-            @click="currentView = 'main'"
-            :class="['nav-btn', { active: currentView === 'main' }]"
-          >
-            🏠 Main
-          </button>
-          <button 
-            @click="currentView = 'admin'"
-            :class="['nav-btn', { active: currentView === 'admin' }]"
-          >
-            🔧 Admin
-          </button>
-        </nav>
+  <div id="app" class="app-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar" :class="{ collapsed: sidebarCollapsed }">
+      <div class="sidebar-header">
+        <h3 v-if="!sidebarCollapsed">NGEAICC</h3>
+        <button @click="toggleSidebar" class="sidebar-toggle">
+          <span v-if="sidebarCollapsed">☰</span>
+          <span v-else>←</span>
+        </button>
       </div>
-    </header>
-
-    <!-- Main Application View -->
-    <main v-if="currentView === 'main'">
-      <!-- Hello World Section -->
-      <section class="hello-section">
-        <h2>🚀 Backend Connection Status</h2>
-        <div v-if="helloData" class="status-card success">
-          <h3>✅ Connected to FastAPI Backend</h3>
-          <pre>{{ JSON.stringify(helloData, null, 2) }}</pre>
-        </div>
-        <div v-else class="status-card error">
-          <h3>❌ Backend Connection Failed</h3>
-          <p>Make sure FastAPI server is running on http://localhost:8000</p>
-        </div>
-      </section>
-
-      <!-- Message Echo Section -->
-      <section class="echo-section">
-        <h2>💬 Message Echo Test</h2>
-        <div class="input-group">
-          <input 
-            v-model="message" 
-            type="text" 
-            placeholder="Enter a message to send to backend..."
-            @keyup.enter="sendMessage"
-          />
-          <button @click="sendMessage" :disabled="loading || !message.trim()">
-            {{ loading ? 'Sending...' : 'Send Message' }}
-          </button>
+      
+      <div class="sidebar-content">
+        <!-- Home -->
+        <div class="menu-item">
+          <router-link to="/" class="menu-link" exact-active-class="active">
+            <span class="menu-icon">🏠</span>
+            <span v-if="!sidebarCollapsed" class="menu-text">Home</span>
+          </router-link>
         </div>
         
-        <div v-if="response" class="response-card">
-          <h4>Response from Backend:</h4>
-          <pre>{{ response }}</pre>
+        <!-- Tools -->
+        <div class="menu-section">
+          <div class="menu-header" @click="toggleSection('tools')">
+            <span class="menu-icon">🛠️</span>
+            <span v-if="!sidebarCollapsed" class="menu-text">Tools</span>
+            <span v-if="!sidebarCollapsed" class="menu-arrow" :class="{ expanded: expandedSections.tools }">▼</span>
+          </div>
+          <div v-if="!sidebarCollapsed && expandedSections.tools" class="submenu">
+            <router-link to="/tools/ping" class="submenu-link">
+              <span class="submenu-icon">🏓</span>
+              <span class="submenu-text">Ping Test</span>
+            </router-link>
+          </div>
         </div>
-      </section>
-
-      <!-- Test Cases Section -->
-      <section class="data-section">
-        <h2>🧪 Test Cases (Database Integration)</h2>
         
-        <div class="create-form">
-          <h4>Create New Test Case</h4>
-          <input v-model="newTestCase.name" placeholder="Test Case Name" />
-          <input v-model="newTestCase.description" placeholder="Description" />
-          <input v-model="newTestCase.category" placeholder="Category" />
-          <button @click="createTestCase" :disabled="!newTestCase.name.trim()">
-            Create Test Case
-          </button>
-        </div>
-
-        <div class="data-list">
-          <h4>Existing Test Cases ({{ testCases.length }})</h4>
-          <div v-if="testCases.length === 0" class="empty-state">
-            No test cases found. Create one above!
+        <!-- Documentation -->
+        <div class="menu-section">
+          <div class="menu-header" @click="toggleSection('documentation')">
+            <span class="menu-icon">📚</span>
+            <span v-if="!sidebarCollapsed" class="menu-text">Documentation</span>
+            <span v-if="!sidebarCollapsed" class="menu-arrow" :class="{ expanded: expandedSections.documentation }">▼</span>
           </div>
-          <div v-for="testCase in testCases" :key="testCase.id" class="data-item">
-            <h5>{{ testCase.name }}</h5>
-            <p><strong>Category:</strong> {{ testCase.category || 'N/A' }}</p>
-            <p><strong>Description:</strong> {{ testCase.description || 'No description' }}</p>
-            <small>Created: {{ new Date(testCase.created_at).toLocaleString() }}</small>
+          <div v-if="!sidebarCollapsed && expandedSections.documentation" class="submenu">
+            <router-link to="/documentation/toe-description" class="submenu-link">
+              <span class="submenu-icon">📋</span>
+              <span class="submenu-text">TOE Description</span>
+            </router-link>
+            <router-link to="/documentation/assurance-activities" class="submenu-link">
+              <span class="submenu-icon">✅</span>
+              <span class="submenu-text">Assurance Activities Identification</span>
+            </router-link>
+            <router-link to="/documentation/assurance-equivalency" class="submenu-link">
+              <span class="submenu-icon">⚖️</span>
+              <span class="submenu-text">Assurance Equivalency Justification</span>
+            </router-link>
+            <router-link to="/documentation/test-bed-description" class="submenu-link">
+              <span class="submenu-icon">🧪</span>
+              <span class="submenu-text">Test Bed Description</span>
+            </router-link>
+            <router-link to="/documentation/tss-guidance" class="submenu-link">
+              <span class="submenu-icon">📖</span>
+              <span class="submenu-text">TSS and Guidance activities</span>
+            </router-link>
+            <router-link to="/documentation/security-requirements" class="submenu-link">
+              <span class="submenu-icon">🔐</span>
+              <span class="submenu-text">Security Assurance Requirements</span>
+            </router-link>
           </div>
         </div>
-      </section>
-
-      <!-- Devices Section -->
-      <section class="data-section">
-        <h2>📱 Devices Under Test</h2>
         
-        <div class="create-form">
-          <h4>Add New Device</h4>
-          <input v-model="newDevice.name" placeholder="Device Name" />
-          <input v-model="newDevice.manufacturer" placeholder="Manufacturer" />
-          <input v-model="newDevice.model" placeholder="Model" />
-          <input v-model="newDevice.description" placeholder="Description" />
-          <button @click="createDevice" :disabled="!newDevice.name.trim()">
-            Add Device
-          </button>
-        </div>
-
-        <div class="data-list">
-          <h4>Registered Devices ({{ devices.length }})</h4>
-          <div v-if="devices.length === 0" class="empty-state">
-            No devices found. Add one above!
+        <!-- Settings -->
+        <div class="menu-section">
+          <div class="menu-header" @click="toggleSection('settings')">
+            <span class="menu-icon">⚙️</span>
+            <span v-if="!sidebarCollapsed" class="menu-text">Settings</span>
+            <span v-if="!sidebarCollapsed" class="menu-arrow" :class="{ expanded: expandedSections.settings }">▼</span>
           </div>
-          <div v-for="device in devices" :key="device.id" class="data-item">
-            <h5>{{ device.name }}</h5>
-            <p><strong>Manufacturer:</strong> {{ device.manufacturer || 'N/A' }}</p>
-            <p><strong>Model:</strong> {{ device.model || 'N/A' }}</p>
-            <p><strong>Description:</strong> {{ device.description || 'No description' }}</p>
-            <small>Created: {{ new Date(device.created_at).toLocaleString() }}</small>
+          <div v-if="!sidebarCollapsed && expandedSections.settings" class="submenu">
+            <router-link to="/settings/database" class="submenu-link">
+              <span class="submenu-icon">🗄️</span>
+              <span class="submenu-text">Database Settings</span>
+            </router-link>
+            <router-link to="/settings/api" class="submenu-link">
+              <span class="submenu-icon">🔗</span>
+              <span class="submenu-text">API</span>
+            </router-link>
+            <router-link to="/settings/system" class="submenu-link">
+              <span class="submenu-icon">💻</span>
+              <span class="submenu-text">System</span>
+            </router-link>
           </div>
         </div>
-      </section>
-    </main>
-
-    <!-- Admin Dashboard View -->
-    <AdminDashboard v-if="currentView === 'admin'" />
+      </div>
+    </nav>
+    
+    <!-- Main Content Area -->
+    <div class="main-content" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
+      <!-- Toolbar -->
+      <header class="toolbar">
+        <div class="toolbar-left">
+          <h1>AI Testing Standard Platform</h1>
+        </div>
+        <div class="toolbar-right">
+          <span class="status-indicator" :class="{ online: connectionStatus }">
+            {{ connectionStatus ? 'Online' : 'Offline' }}
+          </span>
+        </div>
+      </header>
+      
+      <!-- Page Content -->
+      <main class="page-content">
+        <router-view />
+      </main>
+    </div>
   </div>
 </template>
 
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import ApiService from './services/api'
+
+const sidebarCollapsed = ref(false)
+const connectionStatus = ref(false)
+const expandedSections = ref({
+  tools: true,
+  documentation: false,
+  settings: false
+})
+
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+const toggleSection = (section: string) => {
+  if (sidebarCollapsed.value) {
+    sidebarCollapsed.value = false
+  }
+  expandedSections.value[section as keyof typeof expandedSections.value] = !expandedSections.value[section as keyof typeof expandedSections.value]
+}
+
+const checkConnection = async () => {
+  try {
+    await ApiService.getHelloWorld()
+    connectionStatus.value = true
+  } catch (error) {
+    connectionStatus.value = false
+  }
+}
+
+onMounted(() => {
+  checkConnection()
+  // Check connection every 30 seconds
+  setInterval(checkConnection, 30000)
+})
+</script>
+
 <style scoped>
-.app-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+.app-layout {
+  display: flex;
+  height: 100vh;
+  background-color: #f8f9fa;
 }
 
-header {
-  margin-bottom: 40px;
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Sidebar Styles */
+.sidebar {
+  width: 280px;
+  background-color: #2c3e50;
   color: white;
-  border-radius: 12px;
+  transition: width 0.3s ease;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-.header-content {
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid #34495e;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.header-content > div {
-  text-align: left;
-}
-
-header h1 {
-  margin: 0 0 10px 0;
-  font-size: 2.5em;
-}
-
-header p {
-  margin: 0;
-  opacity: 0.9;
-}
-
-.main-nav {
-  display: flex;
-  gap: 10px;
-}
-
-.nav-btn {
-  padding: 10px 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  backdrop-filter: blur(10px);
-}
-
-.nav-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
-}
-
-.nav-btn.active {
-  background: rgba(255, 255, 255, 0.9);
-  color: #667eea;
-  border-color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-section {
-  margin-bottom: 40px;
-  padding: 20px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: white;
-}
-
-section h2 {
-  margin-top: 0;
-  color: #333;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 10px;
-}
-
-.status-card {
-  padding: 20px;
-  border-radius: 8px;
-  margin: 15px 0;
-}
-
-.status-card.success {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.status-card.error {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
-}
-
-.input-group {
-  display: flex;
-  gap: 10px;
-  margin: 15px 0;
-}
-
-.input-group input {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.input-group button {
-  padding: 12px 20px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.input-group button:hover:not(:disabled) {
-  background: #0056b3;
-}
-
-.input-group button:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-}
-
-.response-card {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 15px;
-  margin: 15px 0;
-}
-
-.response-card pre {
-  margin: 0;
-  white-space: pre-wrap;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-}
-
-.create-form {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.create-form h4 {
-  margin-top: 0;
-  color: #495057;
-}
-
-.create-form input {
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
+  height: 60px;
   box-sizing: border-box;
 }
 
-.create-form button {
-  width: 100%;
-  padding: 12px;
-  background: #28a745;
-  color: white;
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+  color: #ecf0f1;
+}
+
+.sidebar-toggle {
+  background: none;
   border: none;
-  border-radius: 4px;
+  color: white;
+  font-size: 18px;
   cursor: pointer;
-  font-size: 14px;
-  margin-top: 10px;
+  padding: 5px;
+  border-radius: 3px;
+  transition: background-color 0.3s ease;
 }
 
-.create-form button:hover:not(:disabled) {
-  background: #218838;
+.sidebar-toggle:hover {
+  background-color: #34495e;
 }
 
-.create-form button:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
+.sidebar-content {
+  padding: 10px 0;
+  overflow-y: auto;
+  height: calc(100vh - 80px);
 }
 
-.data-list h4 {
-  color: #495057;
+.menu-item {
+  margin-bottom: 5px;
 }
 
-.empty-state {
+.menu-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: #ecf0f1;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.menu-link:hover {
+  background-color: #34495e;
+}
+
+.menu-link.active {
+  background-color: #3498db;
+}
+
+.menu-section {
+  margin-bottom: 5px;
+}
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.menu-header:hover {
+  background-color: #34495e;
+}
+
+.menu-icon {
+  width: 20px;
   text-align: center;
-  color: #6c757d;
-  font-style: italic;
-  padding: 20px;
+  margin-right: 15px;
+  font-size: 16px;
 }
 
-.data-item {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 15px;
-  margin: 10px 0;
+.menu-text {
+  flex: 1;
+  white-space: nowrap;
 }
 
-.data-item h5 {
-  margin: 0 0 10px 0;
-  color: #343a40;
-}
-
-.data-item p {
-  margin: 5px 0;
-  color: #495057;
-}
-
-.data-item small {
-  color: #6c757d;
-}
-
-pre {
-  background: #f8f9fa;
-  padding: 10px;
-  border-radius: 4px;
-  overflow-x: auto;
+.menu-arrow {
+  transition: transform 0.3s ease;
   font-size: 12px;
 }
 
+.menu-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.submenu {
+  background-color: #34495e;
+}
+
+.submenu-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px 10px 50px;
+  color: #bdc3c7;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.submenu-link:hover {
+  background-color: #3498db;
+  color: white;
+}
+
+.submenu-link.router-link-active {
+  background-color: #3498db;
+  color: white;
+}
+
+.submenu-icon {
+  width: 16px;
+  text-align: center;
+  margin-right: 12px;
+  font-size: 14px;
+}
+
+.submenu-text {
+  white-space: nowrap;
+}
+
+/* Main Content Styles */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+}
+
+.toolbar {
+  background-color: white;
+  border-bottom: 1px solid #ecf0f1;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  height: 60px;
+  box-sizing: border-box;
+}
+
+.toolbar h1 {
+  margin: 0;
+  font-size: 1.4em;
+  color: #2c3e50;
+}
+
+.status-indicator {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #e74c3c;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.status-indicator.online {
+  background-color: #27ae60;
+}
+
+.page-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    text-align: center;
+  .sidebar {
+    position: fixed;
+    z-index: 1000;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
   }
   
-  .header-content > div {
-    text-align: center;
+  .sidebar:not(.collapsed) {
+    transform: translateX(0);
   }
   
-  .main-nav {
-    justify-content: center;
+  .main-content {
+    width: 100%;
   }
   
-  .nav-btn {
-    flex: 1;
-    min-width: 100px;
+  .toolbar {
+    padding: 15px 20px;
   }
   
-  header h1 {
-    font-size: 2em;
+  .toolbar h1 {
+    font-size: 1.2em;
+  }
+  
+  .page-content {
+    padding: 20px;
   }
 }
 </style>
