@@ -52,6 +52,30 @@ class Device(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
+class TOEDescription(Base):
+    """Model for Target of Evaluation Description"""
+    __tablename__ = "toe_descriptions"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Basic text fields
+    toe_name = Column(String(255))
+    toe_vendor = Column(String(255))
+    evaluation_date = Column(String(100))
+    laboratory_address = Column(String(500))
+    laboratory_name = Column(String(255))
+    toe_version = Column(String(100))
+    common_criteria_version = Column(String(100))
+    
+    # Rich text fields (HTML content from WYSIWYG editor)
+    vendor_address = Column(Text)
+    evaluation_personnel = Column(Text)
+    protection_profile_module = Column(Text)
+    toe_description = Column(Text)
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
 async def get_db():
     """Dependency to get database session"""
     async with AsyncSessionLocal() as session:

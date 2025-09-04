@@ -18,8 +18,12 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@types/lodash-es": "^4.17.12",
+    "@vueup/vue-quill": "^1.2.0",
     "axios": "^1.11.0",
+    "lodash-es": "^4.17.21",
     "pinia": "^3.0.3",
+    "quill": "^2.0.3",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
   },

@@ -19,6 +19,14 @@
           </router-link>
         </div>
         
+        <!-- Preview -->
+        <div class="menu-item">
+          <router-link to="/preview" class="menu-link" exact-active-class="active">
+            <span class="menu-icon">👁️</span>
+            <span v-if="!sidebarCollapsed" class="menu-text">Preview</span>
+          </router-link>
+        </div>
+        
         <!-- Tools -->
         <div class="menu-section">
           <div class="menu-header" @click="toggleSection('tools')">

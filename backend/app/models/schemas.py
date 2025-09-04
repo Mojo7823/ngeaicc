@@ -47,6 +47,34 @@ class Device(DeviceBase):
     class Config:
         from_attributes = True
 
+# TOE Description schemas
+class TOEDescriptionBase(BaseModel):
+    toe_name: Optional[str] = Field(None, max_length=255)
+    toe_vendor: Optional[str] = Field(None, max_length=255)
+    evaluation_date: Optional[str] = Field(None, max_length=100)
+    laboratory_address: Optional[str] = Field(None, max_length=500)
+    laboratory_name: Optional[str] = Field(None, max_length=255)
+    toe_version: Optional[str] = Field(None, max_length=100)
+    common_criteria_version: Optional[str] = Field(None, max_length=100)
+    vendor_address: Optional[str] = None  # HTML content
+    evaluation_personnel: Optional[str] = None  # HTML content
+    protection_profile_module: Optional[str] = None  # HTML content
+    toe_description: Optional[str] = None  # HTML content
+
+class TOEDescriptionCreate(TOEDescriptionBase):
+    pass
+
+class TOEDescriptionUpdate(TOEDescriptionBase):
+    pass
+
+class TOEDescription(TOEDescriptionBase):
+    id: uuid.UUID
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
 class HelloWorldResponse(BaseModel):
     message: str
     timestamp: datetime

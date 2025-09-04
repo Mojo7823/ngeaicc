@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 // Import page components
 import Dashboard from '../views/Dashboard.vue'
 import PingTool from '../views/PingTool.vue'
+import Preview from '../views/Preview.vue'
 
 // Documentation pages (placeholder pages)
 import TOEDescription from '../views/documentation/TOEDescription.vue'
@@ -27,6 +28,11 @@ const routes = [
     path: '/tools/ping',
     name: 'PingTool',
     component: PingTool
+  },
+  {
+    path: '/preview',
+    name: 'Preview',
+    component: Preview
   },
   // Documentation routes
   {
