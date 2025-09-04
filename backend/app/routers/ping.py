@@ -122,8 +122,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
         process = await asyncio.create_subprocess_exec(
             *session["command"],
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
-            universal_newlines=True
+            stderr=asyncio.subprocess.STDOUT
         )
         
         session["process"] = process
@@ -140,10 +139,13 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             if not line:
                 break
                 
+            # Decode bytes to string
+            line_str = line.decode('utf-8').strip()
+            
             # Send output to websocket
             await websocket.send_text(json.dumps({
                 "type": "output",
-                "content": line.strip()
+                "content": line_str
             }))
         
         # Wait for process to complete
