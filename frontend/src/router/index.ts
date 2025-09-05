@@ -5,23 +5,15 @@ import Dashboard from '../views/Dashboard.vue'
 import PingTool from '../views/PingTool.vue'
 import Preview from '../views/Preview.vue'
 
-// Test Evaluation pages
-import TestCases from '../views/test-evaluation/TestCases.vue'
-import TestingTools from '../views/test-evaluation/TestingTools.vue'
-import TestingReports from '../views/test-evaluation/TestingReports.vue'
-import TestCVEs from '../views/test-evaluation/TestCVEs.vue'
-import MitreAttack from '../views/test-evaluation/MitreAttack.vue'
-
-// Documentation pages
+// Documentation pages (placeholder pages)
 import TOEDescription from '../views/documentation/TOEDescription.vue'
 import AssuranceActivities from '../views/documentation/AssuranceActivities.vue'
 import AssuranceEquivalency from '../views/documentation/AssuranceEquivalency.vue'
 import TestBedDescription from '../views/documentation/TestBedDescription.vue'
 import TSSGuidance from '../views/documentation/TSSGuidance.vue'
 import SecurityRequirements from '../views/documentation/SecurityRequirements.vue'
-import PreviewSave from '../views/documentation/PreviewSave.vue'
 
-// Settings pages
+// Settings pages (placeholder pages)
 import DatabaseSettings from '../views/settings/DatabaseSettings.vue'
 import APISettings from '../views/settings/APISettings.vue'
 import SystemSettings from '../views/settings/SystemSettings.vue'
@@ -32,36 +24,10 @@ const routes = [
     name: 'Dashboard',
     component: Dashboard
   },
-  // Test Evaluation routes
-  {
-    path: '/test-evaluation/test-cases',
-    name: 'TestCases',
-    component: TestCases
-  },
-  {
-    path: '/test-evaluation/testing-tools',
-    name: 'TestingTools',
-    component: TestingTools
-  },
-  {
-    path: '/test-evaluation/testing-reports',
-    name: 'TestingReports',
-    component: TestingReports
-  },
-  {
-    path: '/test-evaluation/test-cves',
-    name: 'TestCVEs',
-    component: TestCVEs
-  },
-  {
-    path: '/test-evaluation/mitre-attack',
-    name: 'MitreAttack',
-    component: MitreAttack
-  },
-  // Legacy tools route (redirect to testing tools)
   {
     path: '/tools/ping',
-    redirect: '/test-evaluation/testing-tools'
+    name: 'PingTool',
+    component: PingTool
   },
   {
     path: '/preview',
@@ -98,11 +64,6 @@ const routes = [
     path: '/documentation/security-requirements',
     name: 'SecurityRequirements',
     component: SecurityRequirements
-  },
-  {
-    path: '/documentation/preview-save',
-    name: 'PreviewSave',
-    component: PreviewSave
   },
   // Settings routes
   {

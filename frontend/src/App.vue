@@ -22,38 +22,22 @@
         <!-- Preview -->
         <div class="menu-item">
           <router-link to="/preview" class="menu-link" exact-active-class="active">
-            <span class="menu-icon">📄</span>
+            <span class="menu-icon">👁️</span>
             <span v-if="!sidebarCollapsed" class="menu-text">Preview</span>
           </router-link>
         </div>
         
-        <!-- Test Evaluation -->
+        <!-- Tools -->
         <div class="menu-section">
-          <div class="menu-header" @click="toggleSection('testEvaluation')">
-            <span class="menu-icon">🧪</span>
-            <span v-if="!sidebarCollapsed" class="menu-text">Test Evaluation</span>
-            <span v-if="!sidebarCollapsed" class="menu-arrow" :class="{ expanded: expandedSections.testEvaluation }">▼</span>
+          <div class="menu-header" @click="toggleSection('tools')">
+            <span class="menu-icon">🛠️</span>
+            <span v-if="!sidebarCollapsed" class="menu-text">Tools</span>
+            <span v-if="!sidebarCollapsed" class="menu-arrow" :class="{ expanded: expandedSections.tools }">▼</span>
           </div>
-          <div v-if="!sidebarCollapsed && expandedSections.testEvaluation" class="submenu">
-            <router-link to="/test-evaluation/test-cases" class="submenu-link">
-              <span class="submenu-icon">📋</span>
-              <span class="submenu-text">Test Cases</span>
-            </router-link>
-            <router-link to="/test-evaluation/testing-tools" class="submenu-link">
-              <span class="submenu-icon">🛠️</span>
-              <span class="submenu-text">Testing Tools</span>
-            </router-link>
-            <router-link to="/test-evaluation/testing-reports" class="submenu-link">
-              <span class="submenu-icon">📊</span>
-              <span class="submenu-text">Testing Reports</span>
-            </router-link>
-            <router-link to="/test-evaluation/test-cves" class="submenu-link">
-              <span class="submenu-icon">🔓</span>
-              <span class="submenu-text">Test CVEs</span>
-            </router-link>
-            <router-link to="/test-evaluation/mitre-attack" class="submenu-link">
-              <span class="submenu-icon">⚔️</span>
-              <span class="submenu-text">MITRE ATT&CK</span>
+          <div v-if="!sidebarCollapsed && expandedSections.tools" class="submenu">
+            <router-link to="/tools/ping" class="submenu-link">
+              <span class="submenu-icon">🏓</span>
+              <span class="submenu-text">Ping Test</span>
             </router-link>
           </div>
         </div>
@@ -89,10 +73,6 @@
             <router-link to="/documentation/security-requirements" class="submenu-link">
               <span class="submenu-icon">🔐</span>
               <span class="submenu-text">Security Assurance Requirements</span>
-            </router-link>
-            <router-link to="/documentation/preview-save" class="submenu-link">
-              <span class="submenu-icon">💾</span>
-              <span class="submenu-text">Preview and Save Documents</span>
             </router-link>
           </div>
         </div>
@@ -151,7 +131,7 @@ import ApiService from './services/api'
 const sidebarCollapsed = ref(false)
 const connectionStatus = ref(false)
 const expandedSections = ref({
-  testEvaluation: true,
+  tools: true,
   documentation: false,
   settings: false
 })
@@ -238,7 +218,6 @@ onMounted(() => {
 .sidebar-content {
   padding: 10px 0;
   overflow-y: auto;
-  overflow-x: auto;
   height: calc(100vh - 80px);
 }
 
@@ -333,7 +312,6 @@ onMounted(() => {
 
 .submenu-text {
   white-space: nowrap;
-  min-width: fit-content;
 }
 
 /* Main Content Styles */
