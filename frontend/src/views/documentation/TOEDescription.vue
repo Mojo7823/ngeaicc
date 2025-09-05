@@ -105,27 +105,19 @@
         <div class="form-section">
           <h2>Detailed Information</h2>
           
-          <div class="form-group">
-            <label for="vendor_address" class="form-label">Vendor Address</label>
-            <textarea
-              id="vendor_address"
-              v-model="formData.vendor_address"
-              class="form-input form-textarea form-textarea-large"
-              placeholder="Enter detailed vendor address and contact information..."
-              @input="debouncedSave"
-            ></textarea>
-          </div>
+          <WysiwygEditor
+            v-model="formData.vendor_address"
+            label="Vendor Address"
+            placeholder="Enter detailed vendor address and contact information..."
+            @update:modelValue="debouncedSave"
+          />
 
-          <div class="form-group">
-            <label for="evaluation_personnel" class="form-label">Evaluation Personnel</label>
-            <textarea
-              id="evaluation_personnel"
-              v-model="formData.evaluation_personnel"
-              class="form-input form-textarea form-textarea-large"
-              placeholder="List evaluation team members, roles, and qualifications..."
-              @input="debouncedSave"
-            ></textarea>
-          </div>
+          <WysiwygEditor
+            v-model="formData.evaluation_personnel"
+            label="Evaluation Personnel"
+            placeholder="List evaluation team members, roles, and qualifications..."
+            @update:modelValue="debouncedSave"
+          />
 
           <WysiwygEditor
             v-model="formData.protection_profile_module"
@@ -349,11 +341,6 @@ const debouncedSave = debounce(() => {
 
 .form-textarea {
   min-height: 100px;
-  resize: vertical;
-}
-
-.form-textarea-large {
-  min-height: 120px;
   resize: vertical;
 }
 
