@@ -109,6 +109,18 @@ npm run dev
    - All placeholder pages show "Under Construction" message
 5. All data is persisted in PostgreSQL with pgvector extension
 
+### **Running Unit Tests**
+
+```bash
+# Backend
+cd backend
+python -m pytest
+
+# Frontend
+cd frontend
+npm run test:unit
+```
+
 ---
 
 ## **Technical Architecture**
